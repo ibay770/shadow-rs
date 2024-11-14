@@ -1,0 +1,45 @@
+name: Build and Release Shadow-rs Binary
+
+on:
+  push:
+    branches:
+      - main  # Change to your default branch if necessary
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Build the project
+      run: cargo build --release
+
+    - name: Upload binary as release asset
+      uses: actions/upload-artifact@v2
+      with:
+        name: shadow-rs-binary
+        path: target/release/shadow-rs
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download binary artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: shadow-rs-binary
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: shadow-rs
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
